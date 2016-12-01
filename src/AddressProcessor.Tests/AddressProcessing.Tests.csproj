@@ -68,6 +68,9 @@
     <None Include="test_data\contacts.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="test_data\contactsSlimVersion.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AddressProcessor\AddressProcessing.csproj">
