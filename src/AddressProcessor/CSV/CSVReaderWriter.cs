@@ -49,36 +49,7 @@ namespace AddressProcessing.CSV
             WriteLine(outPut);
         }
 
-        public bool Read(string column1, string column2)
-        {
-            const int FIRST_COLUMN = 0;
-            const int SECOND_COLUMN = 1;
-
-            string line;
-            string[] columns;
-
-            char[] separator = { '\t' };
-
-            line = ReadLine();
-            columns = line.Split(separator);
-
-            if (columns.Length == 0)
-            {
-                column1 = null;
-                column2 = null;
-
-                return false;
-            }
-            else
-            {
-                column1 = columns[FIRST_COLUMN];
-                column2 = columns[SECOND_COLUMN];
-
-                return true;
-            }
-        }
-
-        public bool Read(out string column1, out string column2)
+      public bool Read(out string column1, out string column2)
         {
             const int FIRST_COLUMN = 0;
             const int SECOND_COLUMN = 1;
