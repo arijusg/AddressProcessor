@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using AddressProcessing;
 using AddressProcessing.CSV;
+using AddressProcessing.Tests.CSV;
 using NUnit.Framework;
 
 namespace Csv.Tests
@@ -12,7 +14,7 @@ namespace Csv.Tests
     {
         private string _testDataFile;
         private string _testWriteDataFile;
-        private List<MailAddressTest> _mailAddressTests;
+        private List<Contact> _mailAddressTests;
 
         [OneTimeSetUp]
         public void Init()
@@ -24,11 +26,11 @@ namespace Csv.Tests
 
         private void SetTestData()
         {
-            _mailAddressTests = new List<MailAddressTest>
+            _mailAddressTests = new List<Contact>
             {
-                new MailAddressTest("Shelby Macias", @"3027 Lorem St.|Kokomo|Hertfordshire|L9T 3D5|England"),
-                new MailAddressTest("Porter Coffey", @"Ap #827-9064 Sapien. Rd.|Palo Alto|Fl.|HM0G 0YR|Scotland"),
-                new MailAddressTest("Noelani Ward", @"637-911 Mi Rd.|Monrovia|MB|M5M 6SC|Scotland")
+                new Contact("Shelby Macias", @"3027 Lorem St.|Kokomo|Hertfordshire|L9T 3D5|England"),
+                new Contact("Porter Coffey", @"Ap #827-9064 Sapien. Rd.|Palo Alto|Fl.|HM0G 0YR|Scotland"),
+                new Contact("Noelani Ward", @"637-911 Mi Rd.|Monrovia|MB|M5M 6SC|Scotland")
             };
         }
 
@@ -49,22 +51,29 @@ namespace Csv.Tests
         [Test]
         public void ReadCsvFile()
         {
-
             var reader = new CSVReaderWriter();
             reader.Open(_testDataFile, CSVReaderWriter.Mode.Read);
 
-            var contacts = new List<MailAddressTest>();
+            var contacts = new List<Contact>();
 
             string column1, column2;
 
             while (reader.Read(out column1, out column2))
             {
-                contacts.Add(new MailAddressTest(column1, column2));
+                contacts.Add(new Contact(column1, column2));
             }
 
             reader.Close();
 
             CollectionAssert.AreEqual(_mailAddressTests, contacts);
+        }
+
+        [Test]
+        public void ReadNotOpenedFile()
+        {
+            var reader = new CSVReaderWriter();
+            string column1, column2;
+            Assert.Throws<CSVFileNotOpenException>(() => reader.Read(out column1, out column2));
         }
 
         [Test]
@@ -74,7 +83,7 @@ namespace Csv.Tests
             var writer = new CSVReaderWriter();
             writer.Open(_testWriteDataFile, CSVReaderWriter.Mode.Write);
 
-            //Write
+            //Write test file
 
             foreach (var testAddress in _mailAddressTests)
             {
@@ -82,14 +91,14 @@ namespace Csv.Tests
             }
             writer.Close();
 
-            //Read test File
-            var contacts = new List<MailAddressTest>();
+            //Read test file
+            var contacts = new List<Contact>();
             string column1, column2;
             var reader = new CSVReaderWriter();
             reader.Open(_testWriteDataFile, CSVReaderWriter.Mode.Read);
             while (reader.Read(out column1, out column2))
             {
-                contacts.Add(new MailAddressTest(column1, column2));
+                contacts.Add(new Contact(column1, column2));
             }
 
             reader.Close();
@@ -97,39 +106,11 @@ namespace Csv.Tests
             CollectionAssert.AreEqual(_mailAddressTests, contacts);
         }
 
-        //Write mode -> reading file
-
-        private class MailAddressTest
+        [Test]
+        public void WriteNotOpenedFile()
         {
-            protected bool Equals(MailAddressTest other)
-            {
-                return string.Equals(Name, other.Name) && string.Equals(Address, other.Address);
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(null, obj)) return false;
-                if (ReferenceEquals(this, obj)) return true;
-                if (obj.GetType() != this.GetType()) return false;
-                return Equals((MailAddressTest)obj);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ (Address != null ? Address.GetHashCode() : 0);
-                }
-            }
-
-            public MailAddressTest(string name, string address)
-            {
-                Name = name;
-                Address = address;
-            }
-
-            public string Name { get; }
-            public string Address { get; }
+            var writer = new CSVReaderWriter();
+            Assert.Throws<CSVFileNotOpenException>(() => writer.Write("hello"));
         }
 
         //This is used to make nCrunch and Resharper play nicely 

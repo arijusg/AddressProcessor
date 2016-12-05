@@ -8,11 +8,13 @@ namespace AddressProcessing.CSV
 
         Please leave the rest of this file as it is so we can discuss your concerns during the next stage of the interview process.
         
-        *) The class should have single responsibility and methods should do one thing only.
+        *) The class should have a single responsibility and methods should do one thing only.
         *) StreamReader and StreamWriter implements IDisposable, use using statement, otherwise you risk leaving a mess after yourself
         *) I would like to see tests, we are developers, not professional debuggers. A good read: "Growing object-oriented software guided by tests"
         *) Nulls are bad --> https://qconlondon.com/london-2009/qconlondon.com/london-2009/presentation/Null%2BReferences_%2BThe%2BBillion%2BDollar%2BMistake.html
         *) Method names should describe the functionality of the method. Let's start with CleanCode by Uncle Bob.
+    
+        PS You can use CsvHelper to handle your csv reads/writes. There is no need to invent a wheel ;)
     */
 
     public class CSVReaderWriterForAnnotation
@@ -113,7 +115,7 @@ namespace AddressProcessing.CSV
                 column2 = null;
 
                 return false;
-            } 
+            }
             else
             {
                 column1 = columns[FIRST_COLUMN];
