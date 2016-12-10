@@ -5,6 +5,7 @@ using System.Reflection;
 using AddressProcessing;
 using AddressProcessing.CSV;
 using AddressProcessing.Tests.CSV;
+using Moq;
 using NUnit.Framework;
 
 namespace Csv.Tests
@@ -51,57 +52,65 @@ namespace Csv.Tests
         [Test]
         public void ReadCsvFile()
         {
-            var reader = new CSVReaderWriter();
-            reader.Open(_testDataFile, CSVReaderWriter.Mode.Read);
+            var actualContacts = new List<Contact>();
 
-            var contacts = new List<Contact>();
-
-            string column1, column2;
-
-            while (reader.Read(out column1, out column2))
+            using (var reader = new CSVReaderWriter())
             {
-                contacts.Add(new Contact(column1, column2));
+                reader.Open(_testDataFile, CSVReaderWriter.Mode.Read);
+
+                string column1, column2;
+
+                while (reader.Read(out column1, out column2))
+                {
+                    actualContacts.Add(new Contact(column1, column2));
+                }
+
+                reader.Close();
             }
 
-            reader.Close();
-
-            CollectionAssert.AreEqual(_mailAddressTests, contacts);
+            CollectionAssert.AreEqual(_mailAddressTests, actualContacts);
         }
 
         [Test]
         public void ReadNotOpenedFile()
         {
-            var reader = new CSVReaderWriter();
-            string column1, column2;
-            Assert.Throws<CSVFileNotOpenException>(() => reader.Read(out column1, out column2));
+            using (var reader = new CSVReaderWriter())
+            {
+                string column1, column2;
+                Assert.Throws<CSVFileNotOpenException>(() => reader.Read(out column1, out column2));
+            }
         }
 
         [Test]
         public void WriteCsvFile()
         {
-
-            var writer = new CSVReaderWriter();
-            writer.Open(_testWriteDataFile, CSVReaderWriter.Mode.Write);
-
             //Write test file
-
-            foreach (var testAddress in _mailAddressTests)
+            using (var writer = new CSVReaderWriter())
             {
-                writer.Write(testAddress.Name, testAddress.Address);
+                writer.Open(_testWriteDataFile, CSVReaderWriter.Mode.Write);
+
+
+                foreach (var testAddress in _mailAddressTests)
+                {
+                    writer.Write(testAddress.Name, testAddress.Address);
+                }
+                writer.Close();
             }
-            writer.Close();
 
             //Read test file
             var contacts = new List<Contact>();
-            string column1, column2;
-            var reader = new CSVReaderWriter();
-            reader.Open(_testWriteDataFile, CSVReaderWriter.Mode.Read);
-            while (reader.Read(out column1, out column2))
-            {
-                contacts.Add(new Contact(column1, column2));
-            }
 
-            reader.Close();
+            using (var reader = new CSVReaderWriter())
+            {
+                reader.Open(_testWriteDataFile, CSVReaderWriter.Mode.Read);
+                string column1, column2;
+                while (reader.Read(out column1, out column2))
+                {
+                    contacts.Add(new Contact(column1, column2));
+                }
+
+                reader.Close();
+            }
 
             CollectionAssert.AreEqual(_mailAddressTests, contacts);
         }
@@ -109,10 +118,54 @@ namespace Csv.Tests
         [Test]
         public void WriteNotOpenedFile()
         {
-            var writer = new CSVReaderWriter();
-            Assert.Throws<CSVFileNotOpenException>(() => writer.Write("hello"));
+            using (var writer = new CSVReaderWriter())
+                Assert.Throws<CSVFileNotOpenException>(() => writer.Write("hello"));
         }
 
+        [Test]
+        public void CloseCleansReader()
+        {
+            var readerMock = new Mock<ICsvFileReader>();
+            readerMock.Setup(x => x.Close());
+
+            var sut = new CSVReaderWriter(readerMock.Object, null);
+            sut.Close();
+            readerMock.Verify(x => x.Close(), Times.Once);
+        }
+
+        [Test]
+        public void DisposeCleansReader()
+        {
+            var readerMock = new Mock<ICsvFileReader>();
+            readerMock.Setup(x => x.Close());
+
+            using (var sut = new CSVReaderWriter(readerMock.Object, null)) { }
+
+            readerMock.Verify(x => x.Close(), Times.Once);
+        }
+
+        [Test]
+        public void CloseCleansWriter()
+        {
+            var writerMock = new Mock<ICsvFileWriter>();
+            writerMock.Setup(x => x.Close());
+
+            var sut = new CSVReaderWriter(null, writerMock.Object);
+            sut.Close();
+            writerMock.Verify(x => x.Close(), Times.Once);
+        }
+
+        [Test]
+        public void DisposeCleansWriter()
+        {
+            var writerMock = new Mock<ICsvFileWriter>();
+            writerMock.Setup(x => x.Close());
+
+            using (var sut = new CSVReaderWriter(null, writerMock.Object)) { }
+
+            writerMock.Verify(x => x.Close(), Times.Once);
+        }
+        
         //This is used to make nCrunch and Resharper play nicely 
         public static string AssemblyDirectory
         {

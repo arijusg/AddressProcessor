@@ -12,19 +12,26 @@ namespace AddressProcessing.CSV
       - I tested CSVReaderWriter functionality, not implementation.
       - "Unknown file mode for check and throws exception" - not relevant as we passing in a enum. If enum gets more values, tests should be written around it. We do not code defensively..
       - Method Read(string column, string column2) is redundant, string is immutable type
-      - I did not implement IDisposable as it can't be used using current design.
       - Reading returns two columns only - not flexible implementation. Should return column array or be mapped to objects
       - Exception handling is left for AddressFileProcessor.
 
     */
 
-    public class CSVReaderWriter
+    public class CSVReaderWriter : IDisposable
     {
-        private CsvFileReader _csvFileReader;
-        private CsvFileWriter _csvFileWriter;
+        private ICsvFileReader _csvFileReader;
+        private ICsvFileWriter _csvFileWriter;
 
         [Flags]
         public enum Mode { Read = 1, Write = 2 };
+
+        public CSVReaderWriter() { }
+
+        public CSVReaderWriter(ICsvFileReader reader, ICsvFileWriter writer)
+        {
+            _csvFileReader = reader;
+            _csvFileWriter = writer;
+        }
 
         public void Open(string fileName, Mode mode)
         {
@@ -42,7 +49,7 @@ namespace AddressProcessing.CSV
 
         public bool Read(out string column1, out string column2)
         {
-            if(_csvFileReader == null)
+            if (_csvFileReader == null)
                 throw new CSVFileNotOpenException();
 
             return _csvFileReader.Read(out column1, out column2);
@@ -60,6 +67,20 @@ namespace AddressProcessing.CSV
         {
             _csvFileReader?.Close();
             _csvFileWriter?.Close();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Close();
+            }
         }
     }
 }

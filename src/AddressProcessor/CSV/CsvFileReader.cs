@@ -1,12 +1,20 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using CsvHelper;
 
 namespace AddressProcessing.CSV
 {
-    public class CsvFileReader
+    public class CsvFileReader : ICsvFileReader, IDisposable
     {
         private StreamReader _readerStream;
-        private CsvReader _csvReader;
+        private ICsvReader _csvReader;
+
+        public CsvFileReader() { }
+
+        public CsvFileReader(ICsvReader csvReader)
+        {
+            _csvReader = csvReader;
+        }
 
         public void Open(string fileName)
         {
@@ -15,8 +23,9 @@ namespace AddressProcessing.CSV
 
         private void OpenFileReader(string fileName)
         {
-            _readerStream = File.OpenText(fileName);
+            if(_csvReader != null) return;
 
+            _readerStream = File.OpenText(fileName);
             _csvReader = new CsvReader(_readerStream);
             _csvReader.Configuration.Delimiter = "\t";
             _csvReader.Configuration.HasHeaderRecord = false;
@@ -42,6 +51,20 @@ namespace AddressProcessing.CSV
         public void Close()
         {
             _csvReader?.Dispose();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Close();
+            }
         }
     }
 }

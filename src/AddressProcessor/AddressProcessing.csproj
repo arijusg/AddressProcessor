@@ -59,11 +59,13 @@
   <ItemGroup>
     <Compile Include="Address\AddressRecord.cs" />
     <Compile Include="Address\AddressFileProcessor.cs" />
-    <Compile Include="CSVFileNotOpen.cs" />
+    <Compile Include="CSVFileNotOpenException.cs" />
     <Compile Include="CSV\CsvFileReader.cs" />
     <Compile Include="CSV\CsvFileWriter.cs" />
     <Compile Include="CSV\CSVReaderWriter For Annotation.cs" />
     <Compile Include="CSV\CSVReaderWriter.cs" />
+    <Compile Include="CSV\ICsvFileWriter.cs" />
+    <Compile Include="CSV\ICsvFileReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Address\v1\IMailShot.cs" />
     <Compile Include="Address\v2\IMailShot.cs" />

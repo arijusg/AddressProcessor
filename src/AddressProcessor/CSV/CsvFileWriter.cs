@@ -1,12 +1,20 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using CsvHelper;
 
 namespace AddressProcessing.CSV
 {
-    public class CsvFileWriter
+    public class CsvFileWriter : ICsvFileWriter, IDisposable
     {
         private StreamWriter _writerStream;
-        private CsvWriter _csvWriter;
+        private ICsvWriter _csvWriter;
+
+        public CsvFileWriter() { }
+
+        public CsvFileWriter(ICsvWriter csvWriter)
+        {
+            _csvWriter = csvWriter;
+        }
 
         public void Open(string fileName)
         {
@@ -15,6 +23,8 @@ namespace AddressProcessing.CSV
 
         private void OpenFileWriter(string fileName)
         {
+            if (_csvWriter != null) return;
+             
             FileInfo fileInfo = new FileInfo(fileName);
             _writerStream = fileInfo.CreateText();
             _csvWriter = new CsvWriter(_writerStream);
@@ -35,6 +45,20 @@ namespace AddressProcessing.CSV
         public void Close()
         {
             _csvWriter?.Dispose();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Close();
+            }
         }
     }
 }
